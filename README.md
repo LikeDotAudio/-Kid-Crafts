@@ -12,6 +12,8 @@ This repository contains various HTML-based crafts and applications.
     *   [Coaster Content](coaster/coaster.index.htm)
 *   **Dragon Application**: An application or content related to dragons.
     *   [Dragon App](dragon/dragon.Index.htm)
+*   **Spin Project**: A project involving spinning elements or animations.
+    *   [Spin Project](spin/index.html)
 
 ## Notes
 The specific functionality of each file is described in the README.md within its respective folder. Please review and update these descriptions for accuracy and completeness to fully understand each craft.
