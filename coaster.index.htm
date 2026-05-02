@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Emoji Coaster</title>
+    <style>
+        :root {
+            --orange: #FF8C00; 
+            --dark-orange-trans: rgba(255, 140, 0, 0.95);
+            --green: #228B22; 
+            --gold: #FFD700;
+            --sky-blue: #87CEEB; 
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            --font-legacy: 'Comic Sans MS', 'Chalkboard SE', sans-serif; 
+        }
+        body {
+            margin: 0; overflow: hidden; font-family: var(--font-main);
+            background-color: var(--green); color: #FFFFFF;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; user-select: none;
+        }
+        .game-container {
+            position: relative; width: 100%; max-width: 1200px; height: 100vh;
+            background-color: var(--orange); box-shadow: 0 0 30px rgba(0,0,0,0.6);
+            display: flex; flex-direction: column; align-items: center; border-radius: 10px;
+        }
+
+        /* Screens */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            background-color: var(--dark-orange-trans); backdrop-filter: blur(8px);
+            z-index: 100; opacity: 0; transition: opacity 0.5s ease-in-out;
+        }
+        .screen.active { display: flex; opacity: 1; pointer-events: auto; }
+
+        /* UI */
+        .ui-panel {
+            width: 100%; padding: 15px 25px; background-color: rgba(0, 0, 0, 0.3);
+            display: flex; justify-content: space-between; align-items: center;
+            box-sizing: border-box; z-index: 50; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .money-display { font-size: 1.5em; font-weight: bold; color: var(--gold); text-shadow: 2px 2px #000; }
+        .player-name-display { font-size: 1.2em; font-family: var(--font-legacy); }
+        
+        input[type="text"] { font-size: 1.5em; padding: 10px; border-radius: 10px; border: 2px solid var(--gold); text-align: center; margin-bottom: 20px;}
+        
+        .action-btn {
+            padding: 12px 25px; background-color: #FF4500; color: white; border: 2px solid white;
+            border-radius: 8px; cursor: pointer; font-size: 1.2em; font-weight: bold;
+            transition: 0.2s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .action-btn:hover { transform: scale(1.05); background-color: #FF6347; }
+        .action-btn:disabled { background: #888; transform: none; cursor: not-allowed; }
+
+        /* Shop Grid */
+        .shop-items { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; overflow-y: auto; padding: 20px; max-height: 50vh; }
+        .item-btn {
+            font-size: 2.5em; background: white; border: 3px solid var(--gold); border-radius: 15px;
+            padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center;
+            transition: 0.1s; width: 100px;
+        }
+        .item-btn:hover { transform: scale(1.1); box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5); }
+        .item-btn .price-tag { font-size: 0.3em; color: #333; margin-top: 5px; font-weight: bold; }
+
+        /* Avatar Box */
+        #avatar-box {
+            font-size: 3em; margin: 10px 0; padding: 20px; background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px; border: 3px dashed var(--gold); display: flex; flex-direction: column;
+            align-items: center; min-height: 120px; width: 150px; position: relative;
+        }
+        .slot { position: absolute; }
+        .hat-slot { top: -20px; z-index: 5; }
+        .face-slot { top: 20px; z-index: 4; }
+        .shirt-slot { top: 55px; z-index: 3; }
+        .pants-slot { top: 85px; z-index: 2; }
+        .shoes-slot { top: 110px; font-size: 0.8em; z-index: 1; letter-spacing: -10px; margin-left: -5px;} /* Made for double shoes */
+        .acc-slot { top: 25px; left: 60px; z-index: 6; }
+
+        /* Game Area */
+        #game-area {
+            position: relative; width: 100%; height: 100%; overflow: hidden;
+            background: linear-gradient(to bottom, #000033, #4a0080);
+            z-index: 10;
+        }
+        
+        /* Diamond Track */
+        .track-diamond {
+            position: absolute; font-size: 1.5em; transform: translate(-50%, -50%);
+            text-shadow: 0 0 10px #00ffff; pointer-events: none; z-index: 2;
+        }
+
+        /* Magnet Cart */
+        #cart-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
+        .cart {
+            position: absolute; width: 80px; height: 100px; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-end; transition: transform 0.05s linear;
+        }
+        .cart-magnet { font-size: 4em; transform: rotate(180deg); margin-top: -10px; text-shadow: 0 -10px 20px #00ffff;}
+        .cart-avatar { position: absolute; top: -30px; font-size: 2em; animation: float 1s infinite alternate ease-in-out; }
+
+        /* Action Button */
+        #action-btn {
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            font-size: 4em; background: rgba(255,255,255,0.2); border: 5px solid #00ffff;
+            border-radius: 50%; width: 120px; height: 120px; cursor: pointer;
+            display: none; z-index: 20; animation: pulse-border 0.5s infinite alternate;
+            box-shadow: 0 0 30px #00ffff;
+        }
+        #action-btn:active { background: rgba(255,255,255,0.5); transform: translateX(-50%) scale(0.9); }
+
+        /* Lucky Block */
+        #lucky-block {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            background: var(--gold); border: 8px solid #B8860B; border-radius: 20px;
+            padding: 30px; text-align: center; z-index: 50; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            box-shadow: 0 0 50px var(--gold); color: #333;
+        }
+        #lucky-block.active { transform: translate(-50%, -50%) scale(1); }
+        .spin-face { font-size: 6em; margin: 10px 0; }
+
+        /* Floating Money Animation */
+        @keyframes float { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
+        @keyframes pulse-border { 0% { box-shadow: 0 0 10px #00ffff; } 100% { box-shadow: 0 0 40px #00ffff; } }
+        @keyframes floatUpFade {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div id="login-screen" class="screen active">
+            <h1 style="font-family: var(--font-legacy); font-size: 3em;">Diamond Coaster 🎢💎</h1>
+            <h2>Enter your character name:</h2>
+            <input type="text" id="player-name" placeholder="Name here..." autocomplete="off">
+            <button class="action-btn" onclick="login()">Enter Shop</button>
+        </div>
+
+        <div id="shop-screen" class="screen">
+            <div class="ui-panel">
+                <div class="money-display">Bank: $<span id="shop-money">0</span></div>
+                <div class="player-name-display"><span id="display-name"></span></div>
+                <button class="action-btn" onclick="goToRide()">Get on the Coaster!</button>
+            </div>
+            <h2 style="font-family: var(--font-legacy); font-size: 2.5em; margin: 10px 0;">Emoji Boutique</h2>
+            
+            <div id="avatar-box">
+                <div class="slot hat-slot" id="eq-hat"></div>
+                <div class="slot face-slot" id="eq-face">👤</div>
+                <div class="slot acc-slot" id="eq-acc"></div>
+                <div class="slot shirt-slot" id="eq-shirt"></div>
+                <div class="slot pants-slot" id="eq-pants"></div>
+                <div class="slot shoes-slot" id="eq-shoes"></div>
+            </div>
+
+            <div class="shop-items" id="shop-grid"></div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="ui-panel">
+                <div class="money-display">Earned: $<span id="game-money">0</span></div>
+                <div class="player-name-display">Action: <span id="game-name"></span>!</div>
+            </div>
+            
+            <div id="game-area">
+                <div id="track-container"></div>
+                <div id="cart-container"></div>
+                <button id="action-btn" onclick="handleGameAction()">🏃</button>
+                
+                <div id="lucky-block">
+                    <h2>Lucky Face Block!</h2>
+                    <div class="spin-face" id="lb-face">❓</div>
+                    <h3 id="lb-text">Spinning...</h3>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="screen">
+            <h1 style="font-size: 4em;">Ride Over! 🏁</h1>
+            <h2 style="font-size: 2em; color: var(--gold);">You caught: $<span id="final-score">0</span></h2>
+            <button class="action-btn" onclick="resetToShop()">Back to Shop</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let balance = 0;
+        let rideCash = 0;
+        let player = "";
+        let equipped = { hat: '', face: '👤', shirt: '', pants: '', shoes: '', acc: '' };
+        
+        // Items
+        const shopItems = [
+            { cat: 'hat', e: '🎩', p: 200 }, { cat: 'hat', e: '🧢', p: 100 }, { cat: 'hat', e: '👑', p: 1000 },
+            { cat: 'shirt', e: '👕', p: 150 }, { cat: 'shirt', e: '👗', p: 250 }, { cat: 'shirt', e: '🦺', p: 200 },
+            { cat: 'pants', e: '👖', p: 200 }, { cat: 'pants', e: '🩳', p: 100 },
+            { cat: 'shoes', e: '👟', p: 250 }, { cat: 'shoes', e: '🛼', p: 500 },
+            { cat: 'acc', e: '🕶️', p: 150 }, { cat: 'acc', e: '🎧', p: 300 }
+        ];
+
+        const facePrizes = [
+            { face: '🤑', val: 500, name: "Money Bags" },
+            { face: '😎', val: 200, name: "Cool" },
+            { face: '😱', val: 50, name: "Scared" },
+            { face: '🤩', val: 1000, name: "Superstar" },
+            { face: '🤢', val: 10, name: "Sick" }
+        ];
+
+        // Physics/Track State
+        let gameState = 'IDLE'; // ASCENT, SPINNING, DESCENT
+        let cartZ = 0;
+        let speed = 0;
+        let trackPath = [];
+        let loopId;
+        const TRACK_LEN = 2000;
+        const ASCENT_LEN = 800;
+        let currentFaceVal = 100;
+
+        function show(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function login() {
+            player = document.getElementById('player-name').value || "Guest";
+            balance = (player.toLowerCase() === 'alex kuzub') ? 30000 : 4000;
+            document.getElementById('display-name').innerText = player;
+            document.getElementById('game-name').innerText = player;
+            updateShop();
+            renderShop();
+            show('shop-screen');
+        }
+
+        function renderShop() {
+            const grid = document.getElementById('shop-grid');
+            grid.innerHTML = '';
+            shopItems.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'item-btn';
+                btn.innerHTML = `${item.e}<div class="price-tag">$${item.p}</div>`;
+                btn.onclick = () => buy(item.cat, item.e, item.p);
+                grid.appendChild(btn);
+            });
+        }
+
+        function buy(cat, e, price) {
+            if (balance >= price) {
+                balance -= price;
+                equipped[cat] = e;
+                updateShop();
+            } else alert("Not enough money!");
+        }
+
+        function updateShop() {
+            document.getElementById('shop-money').innerText = balance;
+            
+            // Render equipped items (Double shoes logic)
+            Object.keys(equipped).forEach(k => {
+                let displayStr = equipped[k];
+                if(k === 'shoes' && displayStr !== '') {
+                    displayStr = displayStr + displayStr; // Duplicate the shoe
+                }
+                document.getElementById(`eq-${k}`).innerText = displayStr;
+            });
+        }
+
+        // Calculate Outfit Value to determine track complexity
+        function getOutfitValue() {
+            let val = 0;
+            Object.keys(equipped).forEach(k => {
+                let item = shopItems.find(i => i.e === equipped[k]);
+                if(item) val += item.p;
+            });
+            return val;
+        }
+
+        // --- RIDE LOGIC ---
+        function goToRide() {
+            show('game-screen');
+            buildTrack();
+            buildCart();
+            rideCash = 0;
+            cartZ = 0;
+            speed = 0;
+            gameState = 'ASCENT';
+            document.getElementById('game-money').innerText = rideCash;
+            
+            const btn = document.getElementById('action-btn');
+            btn.innerText = '🏃';
+            btn.style.display = 'block';
+            
+            loopId = requestAnimationFrame(gameLoop);
+        }
+
+        function buildTrack() {
+            const container = document.getElementById('track-container');
+            container.innerHTML = '';
+            trackPath = [];
+            
+            let w = window.innerWidth;
+            let h = window.innerHeight;
+            
+            // Start bottom-left, end up at top-center
+            let startX = 100;
+            let startY = h - 100;
+            let midX = w / 2;
+            let midY = h * 0.3;
+            
+            // Track complexity based on outfit value!
+            let outfitVal = getOutfitValue();
+            let complexity = Math.max(1, outfitVal / 400); // Higher value = crazier track
+            
+            for(let i=0; i<=TRACK_LEN; i+=20) {
+                let x, y, rot = 0;
+
+                if(i < ASCENT_LEN) {
+                    // Diagonal climb to center
+                    let t = i / ASCENT_LEN;
+                    x = startX + (midX - startX) * t;
+                    y = startY + (midY - startY) * t;
+                    rot = Math.atan2((midY - startY), (midX - startX)) * 180 / Math.PI;
+                } else {
+                    // Snaking Drop
+                    let t = (i - ASCENT_LEN) / (TRACK_LEN - ASCENT_LEN);
+                    let baseY = midY + (h - midY) * t; // Straight line down
+                    
+                    // Wave pattern powered by complexity
+                    let amplitude = 40 + (complexity * 25);
+                    let freq = 0.01 + (complexity * 0.003);
+                    
+                    x = midX + Math.sin(i * freq) * amplitude;
+                    y = baseY;
+                    rot = Math.cos(i * freq) * 20; 
+                }
+                
+                trackPath.push({ z: i, x: x, y: y, rot: rot });
+
+                // Draw track
+                if(i % 40 === 0) {
+                    const diamond = document.createElement('div');
+                    diamond.className = 'track-diamond';
+                    diamond.innerText = '💎';
+                    diamond.style.left = `${x}px`;
+                    diamond.style.top = `${y}px`;
+                    container.appendChild(diamond);
+                }
+            }
+        }
+
+        function buildCart() {
+            let shoeHtml = equipped.shoes ? equipped.shoes + equipped.shoes : '';
+            const cartHtml = `
+                <div class="cart" id="ride-cart">
+                    <div class="cart-avatar">
+                        <div class="slot hat-slot">${equipped.hat}</div>
+                        <div class="slot face-slot" id="ride-face">${equipped.face}</div>
+                        <div class="slot acc-slot">${equipped.acc}</div>
+                        <div class="slot shirt-slot">${equipped.shirt}</div>
+                        <div class="slot pants-slot">${equipped.pants}</div>
+                        <div class="slot shoes-slot">${shoeHtml}</div>
+                    </div>
+                    <div class="cart-magnet">🧲</div>
+                </div>
+            `;
+            document.getElementById('cart-container').innerHTML = cartHtml;
+        }
+
+        // Handle both Running (up) and Catching Money (down)
+        function handleGameAction() {
+            if(gameState === 'ASCENT') {
+                speed += 4; 
+            } else if (gameState === 'DESCENT') {
+                rideCash += currentFaceVal;
+                document.getElementById('game-money').innerText = rideCash;
+                spawnFloatingMoney();
+            }
+        }
+
+        function spawnFloatingMoney() {
+            const pop = document.createElement('div');
+            pop.innerText = '+$' + currentFaceVal;
+            pop.style.position = 'absolute';
+            pop.style.color = '#FFD700';
+            pop.style.fontSize = '2.5em';
+            pop.style.fontWeight = 'bold';
+            pop.style.textShadow = '2px 2px 5px #000';
+            // Spawn randomly around the center
+            pop.style.left = (window.innerWidth / 2 + (Math.random() * 200 - 100)) + 'px';
+            pop.style.top = (window.innerHeight / 2 + (Math.random() * 100 - 50)) + 'px';
+            pop.style.animation = 'floatUpFade 1s forwards';
+            pop.style.pointerEvents = 'none';
+            pop.style.zIndex = '100';
+            document.getElementById('game-area').appendChild(pop);
+            
+            setTimeout(() => pop.remove(), 1000);
+        }
+
+        function getTrackPoint(z) {
+            let closest = trackPath[0];
+            for(let p of trackPath) {
+                if(p.z > z) break;
+                closest = p;
+            }
+            return closest;
+        }
+
+        function gameLoop() {
+            if (gameState === 'ASCENT') {
+                speed -= 0.1; // Gravity
+                if(speed < -2) speed = -2;
+                cartZ += speed;
+                if(cartZ < 0) cartZ = 0; 
+
+                if(cartZ >= ASCENT_LEN) { 
+                    gameState = 'SPINNING';
+                    document.getElementById('action-btn').style.display = 'none';
+                    triggerLuckyBlock();
+                }
+            } else if (gameState === 'DESCENT') {
+                speed += 0.2; // Gravity accelerates you down
+                cartZ += speed;
+
+                if(cartZ >= TRACK_LEN) {
+                    finishRide();
+                    return;
+                }
+            }
+
+            // Move Cart
+            const p = getTrackPoint(cartZ);
+            const cart = document.getElementById('ride-cart');
+            if(cart) {
+                cart.style.transform = `translate(${p.x - 40}px, ${p.y - 100}px) rotate(${p.rot}deg)`;
+            }
+
+            loopId = requestAnimationFrame(gameLoop);
+        }
+
+        function triggerLuckyBlock() {
+            const block = document.getElementById('lucky-block');
+            block.classList.add('active');
+            
+            let ticks = 0;
+            let spinInterval = setInterval(() => {
+                const randFace = facePrizes[Math.floor(Math.random() * facePrizes.length)];
+                document.getElementById('lb-face').innerText = randFace.face;
+                ticks++;
+                if(ticks > 20) {
+                    clearInterval(spinInterval);
+                    const finalFace = facePrizes[Math.floor(Math.random() * facePrizes.length)];
+                    document.getElementById('lb-face').innerText = finalFace.face;
+                    document.getElementById('lb-text').innerText = `${finalFace.name}! ($${finalFace.val} per click)`;
+                    
+                    // Apply Face to character (You keep this now!)
+                    equipped.face = finalFace.face;
+                    document.getElementById('ride-face').innerText = finalFace.face;
+                    currentFaceVal = finalFace.val;
+
+                    setTimeout(() => {
+                        block.classList.remove('active');
+                        gameState = 'DESCENT';
+                        speed = 1; 
+                        
+                        // Switch button to Catching mode
+                        const btn = document.getElementById('action-btn');
+                        btn.innerText = '💰';
+                        btn.style.display = 'block';
+                    }, 2500);
+                }
+            }, 100);
+        }
+
+        function finishRide() {
+            cancelAnimationFrame(loopId);
+            balance += rideCash;
+            document.getElementById('final-score').innerText = rideCash;
+            show('game-over-screen');
+        }
+
+        function resetToShop() {
+            updateShop();
+            show('shop-screen');
+        }
+    </script>
+</body>
+</html>

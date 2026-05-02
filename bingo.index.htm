@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Bingo Caller Pro XL</title>
+    <style>
+        :root {
+            --metal-bg: #1a1a1a;
+            --metal-border: #777;
+            --lamp-off: #2a1111;
+            --lamp-on: #ff3300;
+            --lamp-glow: 0 0 20px #ff4400, 0 0 40px #ff0000;
+
+            /* Visual Ball Colors */
+            --ball-b: #1E90FF;
+            --ball-i: #FF4500;
+            --ball-n: #FFFFFF;
+            --ball-g: #32CD32;
+            --ball-o: #FFD700;
+        }
+
+        body {
+            background-color: #0f0f0f;
+            color: white;
+            font-family: 'Arial Black', Gadget, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+            margin: 0;
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        /* --- FLASHBOARD --- */
+        .flashboard {
+            background: var(--metal-bg);
+            border: 8px solid var(--metal-border);
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: inset 0 0 30px #000, 0 5px 15px rgba(0,0,0,0.8);
+            display: grid;
+            grid-template-columns: 0.8fr repeat(15, 1fr);
+            gap: 4px;
+            width: 99vw; 
+            box-sizing: border-box;
+        }
+
+        .letter-header {
+            font-size: 4vw;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 2px solid #444;
+        }
+
+        .letter-header.bingo-flash {
+            color: #fff;
+            text-shadow: 0 0 15px #fff, 0 0 30px #ff0000;
+        }
+
+        .lamp {
+            aspect-ratio: 1 / 1;
+            background: var(--lamp-off);
+            border: 1px solid #111;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lamp-text {
+            font-size: 3.5vw; 
+            font-weight: 900;
+            color: rgba(255,255,255,0.05);
+        }
+
+        .lamp.lit {
+            background: var(--lamp-on);
+            box-shadow: var(--lamp-glow);
+        }
+
+        .lamp.lit .lamp-text { color: #fff; }
+
+        @keyframes flashing {
+            0%, 100% { opacity: 1; filter: brightness(1.5); }
+            50% { opacity: 0.4; filter: brightness(0.8); }
+        }
+
+        .lamp.last-drawn { animation: flashing 0.6s infinite; }
+
+        /* --- MAIN CONTROL CONSOLE LAYOUT --- */
+        .console-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; 
+            width: 100vw;
+            flex-grow: 1;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .flank-display {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            max-width: 400px;
+        }
+
+        .flank-display.left-edge { justify-content: flex-start; }
+        .flank-display.right-edge { justify-content: flex-end; }
+
+        .center-machine {
+            background: #2a1d15;
+            padding: 15px;
+            border-radius: 15px;
+            border: 5px solid #3d2b1f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            margin: 0 20px;
+            min-width: 320px;
+        }
+
+        /* --- CALLER SCRIPT WINDOW --- */
+        .caller-script-box {
+            width: 100%;
+            background: #000;
+            border: 2px solid #555;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 10px #333;
+        }
+
+        #scriptText {
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .blower {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 120%, rgba(255,255,255,0.2), transparent);
+            border: 4px solid #888;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ball-particle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+        }
+
+        @keyframes circularTumble {
+            0% { transform: rotate(0deg) translate(var(--radius)) rotate(0deg); }
+            100% { transform: rotate(360deg) translate(var(--radius)) rotate(-360deg); }
+        }
+
+        .animating .ball-particle {
+            animation: circularTumble var(--speed) infinite linear;
+        }
+
+        /* --- LARGE SELECTED BALL STYLING --- */
+        .bingo-ball-large {
+            width: 35vh;
+            height: 35vh;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 6px solid #444;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            position: relative;
+            visibility: hidden; 
+        }
+
+        .ball-inner-circle {
+            width: 75%;
+            height: 75%;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid rgba(0,0,0,0.2);
+        }
+
+        .ball-letter {
+            font-size: 5vh;
+            line-height: 1;
+            color: #333;
+            margin-bottom: -5px;
+        }
+
+        .ball-number {
+            font-size: 15vh;
+            line-height: 0.9;
+            color: #000;
+        }
+
+        .b-ball { background: radial-gradient(circle at 30% 30%, #fff, var(--ball-b) 80%); }
+        .i-ball { background: radial-gradient(circle at 30% 30%, #fff, var(--ball-i) 80%); }
+        .n-ball { background: radial-gradient(circle at 30% 30%, #eee, var(--ball-n) 80%); }
+        .g-ball { background: radial-gradient(circle at 30% 30%, #fff, var(--ball-g) 80%); }
+        .o-ball { background: radial-gradient(circle at 30% 30%, #fff, var(--ball-o) 80%); }
+
+        /* --- CONTROLS --- */
+        .timer {
+            font-size: 2rem;
+            color: #00ff00;
+            font-family: monospace;
+            background: #000;
+            padding: 5px 15px;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 150px;
+            padding: 12px;
+            margin: 5px;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        #drawBtn { background: #d00; color: white; }
+        #bingoBtn { background: gold; color: black; box-shadow: 0 0 15px gold; }
+        #resetBtn { background: #444; color: #aaa; font-size: 0.7rem; width: 100px; }
+        .slider-box { font-size: 0.8rem; text-align: center; color: #ccc; }
+
+    </style>
+</head>
+<body>
+
+<div class="flashboard" id="board"></div>
+
+<div class="console-container">
+    <div class="flank-display left-edge">
+        <div id="ballLeft" class="bingo-ball-large">
+            <div class="ball-inner-circle">
+                <div class="ball-letter" id="letterLeft"></div>
+                <div class="ball-number" id="numLeft"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="center-machine">
+        <div class="blower" id="blower"></div>
+        
+        <div class="caller-script-box">
+            <div id="scriptText">READY TO PLAY</div>
+        </div>
+
+        <div class="timer" id="clock">00:10</div>
+        
+        <button id="drawBtn">START DRAW</button>
+        <button id="bingoBtn">BINGO!</button>
+        
+        <div class="slider-box">
+            INTERVAL: <span id="delayVal">10</span>s<br>
+            <input type="range" id="delaySlider" min="3" max="30" value="10">
+        </div>
+
+        <button id="resetBtn">RESET (3)</button>
+    </div>
+
+    <div class="flank-display right-edge">
+        <div id="ballRight" class="bingo-ball-large">
+            <div class="ball-inner-circle">
+                <div class="ball-letter" id="letterRight"></div>
+                <div class="ball-number" id="numRight"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const bingoLingo = {
+        1: "Kelly’s eye", 2: "One little duck", 3: "Cup of tea", 4: "Knock at the door", 5: "Man alive",
+        6: "Tom Mix", 7: "Lucky seven", 8: "Garden gate", 9: "Doctor’s orders", 10: "Number 10 Downing St",
+        11: "Legs eleven", 12: "One dozen", 13: "Unlucky for some", 14: "Valentine’s Day", 15: "Young and keen",
+        16: "Sweet 16", 17: "Dancing queen", 18: "Coming of age", 19: "Goodbye teens", 20: "One score",
+        21: "Royal salute", 22: "Two little ducks", 23: "Thee and me", 24: "Two dozen", 25: "Duck and dive",
+        26: "Pick and mix", 27: "Gateway to heaven", 28: "In a state", 29: "Rise and shine", 30: "Dirty Gertie",
+        31: "Get up and run", 32: "Buckle my shoe", 33: "Dirty knee", 34: "Ask for more", 35: "Jump and jive",
+        36: "Three dozen", 37: "More than eleven", 38: "Christmas cake", 39: "39 steps", 40: "Life begins",
+        41: "Time for fun", 42: "Winnie the Pooh", 43: "Down on your knees", 44: "Droopy drawers", 45: "Halfway there",
+        46: "Up to tricks", 47: "Four and seven", 48: "Four dozen", 49: "PC 49", 50: "Half a century",
+        51: "Tweak of the thumb", 52: "Danny La Rue", 53: "Stuck in a tree", 54: "Clean the floor", 55: "Snakes alive",
+        56: "Shotts Bus", 57: "Heinz varieties", 58: "Make them wait", 59: "Brighton Line", 60: "Five dozen",
+        61: "Baker’s bun", 62: "Tickety-boo", 63: "Tickle me 63", 64: "Red raw", 65: "Old age pension",
+        66: "Clickety click", 67: "Stairway to heaven", 68: "Saving Grace", 69: "Favourite of mine", 70: "Three score and ten",
+        71: "Bang on the drum", 72: "Six dozen", 73: "Queen bee", 74: "Hit the floor", 75: "Strive and strive"
+    };
+
+    const letters = ['B','I','N','G','O'];
+    const ballClasses = ['b-ball', 'i-ball', 'n-ball', 'g-ball', 'o-ball'];
+    let balls = Array.from({length: 75}, (_, i) => i + 1);
+    let drawn = [];
+    let isDrawing = false;
+    let isBingo = false;
+    let countdownLoop, bingoInterval, timeRemaining, resetCount = 3;
+
+    // Initialize Flashboard
+    letters.forEach((L, idx) => {
+        const h = document.createElement('div');
+        h.className = 'letter-header'; h.id = `header-${L}`; h.innerText = L;
+        document.getElementById('board').appendChild(h);
+        for(let i=1; i<=15; i++) {
+            const n = (idx * 15) + i;
+            const lamp = document.createElement('div');
+            lamp.className = 'lamp'; lamp.id = `lamp-${n}`;
+            lamp.innerHTML = `<span class="lamp-text">${n}</span>`;
+            document.getElementById('board').appendChild(lamp);
+        }
+    });
+
+    function populateBlower() {
+        const blower = document.getElementById('blower');
+        blower.innerHTML = '';
+        for(let i=1; i<=75; i++) {
+            const b = document.createElement('div');
+            const LIdx = Math.floor((i - 1) / 15);
+            const letterKey = letters[LIdx].toLowerCase();
+            b.className = `ball-particle p-${letterKey}`; 
+            b.style.backgroundColor = `var(--ball-${letterKey})`;
+            b.style.setProperty('--speed', (0.5 + Math.random() * 1.5) + 's');
+            b.style.setProperty('--radius', (10 + Math.random() * 60) + 'px');
+            b.style.animationDelay = -(Math.random() * 2) + 's';
+            blower.appendChild(b);
+        }
+    }
+    populateBlower();
+
+    function draw() {
+        if(balls.length === 0) return stop();
+        
+        if(drawn.length > 0) {
+            document.getElementById(`lamp-${drawn[drawn.length-1]}`).classList.remove('last-drawn');
+        }
+
+        const ball = balls.pop();
+        drawn.push(ball);
+        const LIdx = Math.floor((ball-1)/15);
+        const L = letters[LIdx];
+
+        // LOGIC: Remove matching color particle from blower
+        const targetClass = `.p-${L.toLowerCase()}`;
+        const particle = document.querySelector(targetClass);
+        if(particle) particle.remove();
+
+        // LOGIC: Update Caller Script
+        document.getElementById('scriptText').innerText = `${L}-${ball}: ${bingoLingo[ball]}`;
+
+        // Update Large Flanking Balls
+        [document.getElementById('ballLeft'), document.getElementById('ballRight')].forEach((el, i) => {
+            el.className = `bingo-ball-large ${ballClasses[LIdx]}`;
+            el.style.visibility = 'visible';
+            const side = i === 0 ? 'Left' : 'Right';
+            document.getElementById('letter'+side).innerText = L;
+            document.getElementById('num'+side).innerText = ball;
+        });
+
+        document.getElementById(`lamp-${ball}`).classList.add('lit', 'last-drawn');
+        timeRemaining = parseInt(document.getElementById('delaySlider').value);
+    }
+
+    function start() {
+        if(isBingo) stopBingo();
+        isDrawing = true;
+        document.getElementById('drawBtn').innerText = "STOP";
+        document.getElementById('blower').classList.add('animating');
+        if(drawn.length === 0) { 
+            balls.sort(() => Math.random() - 0.5); 
+            draw(); 
+        } else { 
+            timeRemaining = timeRemaining || parseInt(document.getElementById('delaySlider').value); 
+        }
+        
+        countdownLoop = setInterval(() => {
+            timeRemaining--;
+            if(timeRemaining <= 0) draw();
+            document.getElementById('clock').innerText = `00:${timeRemaining < 10 ? '0'+timeRemaining : timeRemaining}`;
+        }, 1000);
+    }
+
+    function stop() {
+        isDrawing = false;
+        document.getElementById('drawBtn').innerText = "RESUME";
+        document.getElementById('blower').classList.remove('animating');
+        clearInterval(countdownLoop);
+    }
+
+    document.getElementById('drawBtn').addEventListener('click', () => {
+        resetCount = 3; document.getElementById('resetBtn').innerText = "RESET (3)";
+        if(isDrawing) stop(); else start();
+    });
+
+    document.getElementById('bingoBtn').addEventListener('click', () => {
+        if(isBingo) {
+            isBingo = false; clearInterval(bingoInterval);
+            document.querySelectorAll('.letter-header').forEach(el => el.classList.remove('bingo-flash'));
+            document.getElementById('bingoBtn').style.background = "gold";
+        } else {
+            stop(); isBingo = true;
+            let step = 0;
+            bingoInterval = setInterval(() => {
+                const headers = document.querySelectorAll('.letter-header');
+                headers.forEach(h => h.classList.remove('bingo-flash'));
+                headers[step % 5].classList.add('bingo-flash');
+                step++;
+            }, 200);
+            document.getElementById('bingoBtn').style.background = "white";
+        }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        resetCount--; document.getElementById('resetBtn').innerText = `RESET (${resetCount})`;
+        if(resetCount <= 0) location.reload();
+    });
+
+    document.getElementById('delaySlider').addEventListener('input', (e) => {
+        document.getElementById('delayVal').innerText = e.target.value;
+    });
+
+</script>
+</body>
+</html>

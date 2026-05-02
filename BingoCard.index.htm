@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anthony's Bingo - 3 Card Layout</title>
+    <style>
+        :root {
+            --card-bg: #d4a373; /* Leather tan/brown */
+            --card-border: #8b5e34;
+            --cell-bg: #ffffff;
+            --slider-color: rgba(210, 4, 4, 0.6); /* Red slider */
+        }
+
+        body {
+            font-family: 'Arial Black', sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .header-controls {
+            background: #333;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            border: 2px solid var(--card-bg);
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* Bingo Card Styling */
+        .bingo-card {
+            background-color: var(--card-bg);
+            border: 6px solid var(--card-border);
+            border-radius: 15px;
+            padding: 12px;
+            width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .bingo-letters {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            text-align: center;
+            font-size: 2.2rem;
+            color: #2e1a07;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            background: #5d4037;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .cell {
+            background: var(--cell-bg);
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #000;
+            cursor: pointer;
+            position: relative;
+            border-radius: 2px;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        /* The Red Slider Covering */
+        .cell.marked::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 0;
+            width: 100%;
+            height: 70%;
+            background-color: var(--slider-color);
+            border-top: 2px solid #800;
+            border-bottom: 2px solid #800;
+            z-index: 1;
+            animation: slideIn 0.25s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        .free-space {
+            font-size: 0.7rem;
+            background: #eee;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .win-tag {
+            display: none;
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: #f1c40f;
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            transform: rotate(15deg);
+            border: 2px solid #000;
+            z-index: 5;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        /* Footer Controls */
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .new-game-btn {
+            padding: 18px 45px;
+            font-size: 1.5rem;
+            background: #c0392b;
+            color: white;
+            border: 4px solid #fff;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .new-game-btn:hover { background: #e74c3c; }
+        
+        select {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            background: #fff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-controls">
+        <div>
+            <label>CHOOSE GAME: </label>
+            <select id="gameMode">
+                <option value="line">Any 1 Line</option>
+                <option value="2lines">Two Horizontal Lines</option>
+                <option value="2vertical">Two Vertical Lines</option>
+                <option value="blackout">Full House (Blackout)</option>
+            </select>
+        </div>
+        <button onclick="exportToCSV()" style="padding: 10px; cursor: pointer;">Export to Sheets</button>
+    </div>
+
+    <div id="gameContainer" class="game-container">
+        </div>
+
+    <div class="footer">
+        <button id="clearBtn" class="new-game-btn" onclick="confirmReset()">NEW GAME</button>
+    </div>
+
+    <script>
+        let resetCounter = 0;
+
+        function getRandomNumbers(min, max, count) {
+            let arr = [];
+            while(arr.length < count) {
+                let r = Math.floor(Math.random() * (max - min + 1)) + min;
+                if(arr.indexOf(r) === -1) arr.push(r);
+            }
+            return arr;
+        }
+
+        function initGame() {
+            const container = document.getElementById('gameContainer');
+            container.innerHTML = '';
+            
+            // Always generate 3 cards
+            for (let i = 0; i < 3; i++) {
+                createBingoCard(i);
+            }
+        }
+
+        function createBingoCard(index) {
+            const container = document.getElementById('gameContainer');
+            const card = document.createElement('div');
+            card.className = 'bingo-card';
+            card.id = `card-${index}`;
+
+            card.innerHTML = `
+                <div class="win-tag">BINGO!</div>
+                <div class="bingo-letters">
+                    <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+                </div>
+                <div class="grid" id="grid-${index}"></div>
+            `;
+
+            container.appendChild(card);
+            const grid = document.getElementById(`grid-${index}`);
+
+            const cols = {
+                B: getRandomNumbers(1, 15, 5),
+                I: getRandomNumbers(16, 30, 5),
+                N: getRandomNumbers(31, 45, 5),
+                G: getRandomNumbers(46, 60, 5),
+                O: getRandomNumbers(61, 75, 5)
+            };
+
+            for (let r = 0; r < 5; r++) {
+                ['B','I','N','G','O'].forEach((letter, c) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    if (r === 2 && c === 2) {
+                        cell.innerHTML = "FREE<br>0993";
+                        cell.classList.add('free-space', 'marked');
+                    } else {
+                        cell.innerText = cols[letter][r];
+                        cell.onclick = () => {
+                            cell.classList.toggle('marked');
+                            checkBingo(card);
+                        };
+                    }
+                    grid.appendChild(cell);
+                });
+            }
+        }
+
+        function checkBingo(card) {
+            const cells = Array.from(card.querySelectorAll('.cell'));
+            const mode = document.getElementById('gameMode').value;
+            const matrix = [];
+            while(cells.length) matrix.push(cells.splice(0,5));
+
+            let rows = 0;
+            let cols = 0;
+
+            // Row Check
+            matrix.forEach(row => {
+                if(row.every(cell => cell.classList.contains('marked'))) rows++;
+            });
+
+            // Column Check
+            for(let c=0; c<5; c++) {
+                let colMarked = true;
+                for(let r=0; r<5; r++) {
+                    if(!matrix[r][c].classList.contains('marked')) colMarked = false;
+                }
+                if(colMarked) cols++;
+            }
+
+            let won = false;
+            if(mode === 'line' && (rows > 0 || cols > 0)) won = true;
+            if(mode === '2lines' && rows >= 2) won = true;
+            if(mode === '2vertical' && cols >= 2) won = true;
+            if(mode === 'blackout' && rows === 5) won = true;
+
+            card.querySelector('.win-tag').style.display = won ? 'block' : 'none';
+        }
+
+        function confirmReset() {
+            resetCounter++;
+            const btn = document.getElementById('clearBtn');
+            
+            if(resetCounter === 1) {
+                btn.innerText = "REALLY CLEAR?";
+            } else if (resetCounter === 2) {
+                btn.innerText = "ARE YOU SURE?";
+            } else {
+                initGame(); // Re-generate all 3 cards
+                btn.innerText = "NEW GAME";
+                resetCounter = 0;
+            }
+        }
+
+        function exportToCSV() {
+            let csv = "Card Number,B,I,N,G,O\n";
+            const cards = document.querySelectorAll('.bingo-card');
+            
+            cards.forEach((card, idx) => {
+                const cells = card.querySelectorAll('.cell');
+                for(let r=0; r<5; r++) {
+                    let rowData = [idx + 1];
+                    for(let c=0; c<5; c++) {
+                        rowData.push(cells[r*5 + c].innerText.replace(/\n/g, " "));
+                    }
+                    csv += rowData.join(",") + "\n";
+                }
+                csv += "\n";
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'anthony_bingo_cards.csv';
+            a.click();
+        }
+
+        // Run on load
+        initGame();
+    </script>
+</body>
+</html>
