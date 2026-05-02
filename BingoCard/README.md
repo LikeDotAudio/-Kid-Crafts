@@ -1,3 +1,1 @@
-This directory contains the HTML file for generating Bingo cards. It handles the creation and display of individual Bingo cards.
-
-This is a placeholder description. Please update it with specific details about the Bingo card generator functionality.
+This directory holds the HTML file (`BingoCard.index.htm`) used to generate and display Bingo cards. It likely handles tasks like creating unique card patterns, defining the grid size, and potentially allowing users to customize certain aspects of the cards. Check `BingoCard.index.htm` for specific generation parameters or options.

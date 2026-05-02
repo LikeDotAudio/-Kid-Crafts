@@ -1,3 +1,1 @@
-This directory contains the HTML file for the Bingo game. It is responsible for the game logic and user interface.
-
-This is a placeholder description. Please update it with specific details about the Bingo game functionality.
+This directory contains the main HTML file (`bingo.index.htm`) for the Bingo game. It's responsible for the game's logic, user interface, and managing game states such as announcing numbers, marking cards, and detecting wins. For detailed game rules or how to play, refer to the specific documentation within the `bingo.index.htm` file or its associated scripts, if any.

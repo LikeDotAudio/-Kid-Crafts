@@ -14,4 +14,4 @@ This repository contains various HTML-based crafts and applications.
     *   [Dragon App](dragon/dragon.Index.htm)
 
 ## Notes
-The specific functionality of each file is described in the README.md within its respective folder. Please review and update these descriptions for accuracy.
+The specific functionality of each file is described in the README.md within its respective folder. Please review and update these descriptions for accuracy and completeness to fully understand each craft.
