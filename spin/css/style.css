@@ -1,0 +1,229 @@
+:root {
+    --bg-color: #1a1a1a;
+    --panel-bg: #2b2b2b;
+    --accent: #00ffcc;
+    --text: #ffffff;
+    --danger: #ff4444;
+    --info: #33A1FD;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    touch-action: none;
+}
+
+#controls {
+    width: 280px;
+    background: var(--panel-bg);
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+#controls.hidden { transform: translateX(-100%); position: absolute; }
+
+textarea {
+    height: 150px;
+    background: #111;
+    color: #00ff00;
+    border: 1px solid #444;
+    padding: 10px;
+    resize: none;
+    font-size: 14px;
+}
+
+button { border: none; padding: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 4px; font-size: 0.75rem; }
+.primary-btn { background: var(--accent); color: #000; }
+.danger-btn { background: var(--danger); color: white; }
+.info-btn { background: var(--info); color: white; }
+.utility-btn { background: #444; color: white; }
+
+#viewport {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: #111;
+    overflow: hidden;
+}
+
+#light-frame {
+    position: absolute;
+    top: 5px; left: 5px; right: 5px; bottom: 5px;
+    border: 15px solid #222;
+    border-radius: 15px;
+    display: none;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.light { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #333; }
+.light.active { background: #fff; box-shadow: 0 0 15px #fff, 0 0 30px #ffd700; }
+
+#display-header {
+    position: absolute;
+    top: 40px;
+    padding: 15px 30px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 3px solid var(--accent);
+    border-radius: 50px;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--accent);
+    z-index: 500;
+    text-align: center;
+    min-width: 250px;
+    box-shadow: 0 0 20px rgba(0,255,204,0.3);
+}
+
+#drum-assembly {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: all 0.3s ease;
+    width: 100%;
+    height: 100%;
+}
+
+#drum-assembly.drum-mode {
+    width: 90%;
+    max-width: 450px;
+    height: 600px;
+    overflow: hidden;         /* 1. Move clipping here */
+    border-radius: 50% / 10%; /* 2. Move curved edges here */
+    background: #000;         /* 3. Move background here */
+}
+#drum-assembly.flat-mode {
+    width: 90vmin;
+    height: 90vmin;
+    max-width: 700px;
+    max-height: 700px;
+}
+
+#wheel-window {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    perspective: 1500px; 
+}
+
+.drum-mode #wheel-window {
+    /* REMOVE border-radius */
+    /* REMOVE overflow: hidden */
+    /* REMOVE background */
+    
+    /* Keep only your shadow and 3D properties */
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+}
+
+.flat-mode #wheel-window {
+    border-radius: 50%; 
+    overflow: hidden;
+    border: 4px solid #333;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    background: #222;
+}
+
+#wheel-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 160px;
+    background: #000;
+    border-radius: 50%;
+    border: 4px solid #555;
+    z-index: 100;
+    display: none;
+}
+
+.flat-mode #wheel-hub {
+    display: block;
+}
+
+#pointer {
+    position: absolute;
+    z-index: 600;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0; 
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-right: 45px solid var(--accent);
+    filter: drop-shadow(0 0 8px rgba(0,0,0,0.8));
+    pointer-events: none;
+    transition: right 0.3s ease;
+}
+
+.drum-mode #pointer { right: -40px; }
+.flat-mode #pointer { right: -20px; }
+
+#wheel-scaler {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform-style: preserve-3d;
+}
+
+#wheel-container {
+    position: absolute;
+    top: 0; left: 0;
+    transform-style: preserve-3d;
+    cursor: grab;
+    touch-action: none;
+}
+
+.slice {
+    position: absolute;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 10px;
+    font-weight: 900;
+    backface-visibility: hidden;
+    box-sizing: border-box;
+    color: white;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    z-index: 10;
+}
+
+.drum-mode .slice {
+    width: 1600px; 
+    height: 60px;
+    left: -800px; 
+    top: -30px;
+    font-size: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.flat-mode .slice {
+    width: 346px;
+    height: 60px;
+    left: 0; 
+    top: -30px;
+    transform-origin: left center;
+    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+    justify-content: flex-end;
+    padding-right: 20px;
+    padding-top: 0px;
+    font-size: 1.1rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    align-items: center;
+}
+
+#config-toggle { position: absolute; bottom: 15px; left: 15px; z-index: 1100; background: #444; color: white; border-radius: 20px; padding: 10px 20px; }

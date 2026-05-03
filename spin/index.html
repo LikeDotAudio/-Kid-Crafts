@@ -4,172 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>100-Slice Precision Game Wheel</title>
-    <style>
-        :root {
-            --bg-color: #1a1a1a;
-            --panel-bg: #2b2b2b;
-            --accent: #00ffcc;
-            --text: #ffffff;
-            --danger: #ff4444;
-            --info: #33A1FD;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            margin: 0;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            touch-action: none;
-        }
-
-        #controls {
-            width: 280px;
-            background: var(--panel-bg);
-            padding: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 1000;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow-y: auto;
-        }
-
-        #controls.hidden { transform: translateX(-100%); position: absolute; }
-
-        textarea {
-            height: 100px;
-            background: #111;
-            color: #00ff00;
-            border: 1px solid #444;
-            padding: 10px;
-            resize: none;
-            font-size: 14px;
-        }
-
-        button { border: none; padding: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 4px; font-size: 0.75rem; }
-        .primary-btn { background: var(--accent); color: #000; }
-        .danger-btn { background: var(--danger); color: white; }
-        .info-btn { background: var(--info); color: white; }
-
-        #viewport {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            perspective: 2500px; 
-            position: relative;
-            background: radial-gradient(circle, #333 0%, #111 100%);
-            overflow: hidden;
-        }
-
-        #light-frame {
-            position: absolute;
-            top: 5px; left: 5px; right: 5px; bottom: 5px;
-            border: 15px solid #222;
-            border-radius: 15px;
-            display: none;
-            pointer-events: none;
-            z-index: 50;
-        }
-
-        .light { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #333; }
-        .light.active { background: #fff; box-shadow: 0 0 15px #fff, 0 0 30px #ffd700; }
-
-        #display-header {
-            position: absolute;
-            top: 40px;
-            padding: 15px 30px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 3px solid var(--accent);
-            border-radius: 50px;
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: var(--accent);
-            z-index: 500;
-            text-align: center;
-            min-width: 250px;
-        }
-
-        #wheel-scaler {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform-style: preserve-3d;
-        }
-
-        #wheel-container {
-            width: 500px;
-            height: 100px;
-            position: relative;
-            transform-style: preserve-3d;
-            cursor: grab;
-            touch-action: none;
-        }
-
-        #wheel-container.flat-mode {
-            width: 600px;
-            height: 600px;
-            transform-origin: center center !important;
-        }
-
-        /* Pointer: Positioned to touch the wheel edges exactly */
-        #pointer {
-            position: absolute;
-            right: calc(50% - 250px - 0px); 
-            width: 0; height: 0; 
-            border-top: 25px solid transparent;
-            border-bottom: 25px solid transparent;
-            border-right: 50px solid var(--accent);
-            z-index: 600;
-            pointer-events: none;
-        }
-
-        #pointer.flat-pointer {
-            right: calc(50% - 300px - 0px) !important;
-            top: 50% !important;
-            margin-top: -25px;
-            transform: rotate(0deg) !important;
-        }
-
-        .slice {
-            position: absolute;
-            width: 500px;
-            height: 101px;
-            left: 0; top: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 900;
-            /* LARGE FONT FOR DRUM MODE */
-            font-size: 1.8rem; 
-            backface-visibility: hidden;
-            box-sizing: border-box;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            padding: 0 15px;
-        }
-
-        .flat-slice {
-            width: 300px !important;
-            height: 40px !important;
-            left: 50% !important;
-            top: 50% !important;
-            margin-top: -20px;
-            clip-path: polygon(0 50%, 100% 0, 100% 100%);
-            transform-origin: left center !important;
-            justify-content: flex-end !important;
-            padding-right: 25px;
-            /* GOOD FONT SIZE FOR WHEEL MODE */
-            font-size: 1rem !important;
-        }
-
-        #config-toggle { position: absolute; bottom: 15px; left: 15px; z-index: 1100; background: #444; color: white; border-radius: 20px; }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -179,178 +14,65 @@
         <h2>Wheel Config</h2>
         <button class="info-btn" onclick="generateRandomNumbers()">Random 1-100</button>
         <button class="info-btn" onclick="loadActivities()">Activities</button>
-        <button class="info-btn" onclick="loadChores()">Chores</button>
         <button class="info-btn" onclick="loadFood()">Food</button>
         <button class="danger-btn" onclick="loadUnfortunate()">Unfortunate</button>
         
-        <div style="background: #111; padding: 5px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px;">
-            <button class="utility-btn" onclick="toggleWheelType()">Switch to Flat</button>
+        <div style="background: #111; padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 8px; margin: 10px 0;">
+            <button id="mode-btn" class="utility-btn" onclick="toggleWheelType()">SWITCH TO FLAT MODE</button>
             <button id="game-btn" class="utility-btn" onclick="toggleGameMode()">Game Mode: Off</button>
-            <button id="mute-btn" class="utility-btn" onclick="toggleMute()">Unmute Sound</button>
+            <button id="mute-btn" class="utility-btn" onclick="toggleMute()" style="border: none;">Unmute Sound</button>
         </div>
 
         <button class="danger-btn" onclick="clearList()">Clear List</button>
         <button class="primary-btn" onclick="applyNames()">Update Wheel</button>
         <textarea id="nameInput">EDDIE&#10;ALEX&#10;ELIZABETH&#10;ANTHONY</textarea>
-        <button style="background:#ffcc00;" onclick="autoSpin()">Auto Spin</button>
+        <button style="background:#ffcc00; color: black;" onclick="autoSpin()">Auto Spin</button>
     </div>
 
     <div id="viewport">
         <div id="light-frame"></div>
         <div id="display-header">FLICK TO SPIN</div>
-        <div id="pointer"></div>
-        <div id="wheel-scaler">
-            <div id="wheel-container"></div>
+        
+        <div id="drum-assembly" class="drum-mode">
+            <div id="pointer"></div>
+            <div id="wheel-window">
+                <div id="wheel-hub"></div>
+                <div id="wheel-scaler">
+                    <div id="wheel-container"></div>
+                </div>
+            </div>
         </div>
     </div>
 
 <script>
-    const container = document.getElementById('wheel-container');
-    const scaler = document.getElementById('wheel-scaler');
-    const nameInput = document.getElementById('nameInput');
-    const pointer = document.getElementById('pointer');
-    const displayHeader = document.getElementById('display-header');
-    const lightFrame = document.getElementById('light-frame');
-    const controls = document.getElementById('controls');
+    let container, scaler, nameInput, pointer, displayHeader, controls, drumAssembly, lightFrame;
     
-    let rotation = 0, velocity = 0, isDragging = false;
-    let lastY = 0, lastTime = 0;
-    let sliceItems = [], sliceColors = [], lastIndex = -1;
-    let isMuted = true, gameMode = false, isFlat = false;
-    let lightSequence = 0;
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    const unfortunate = ["Pickle Juice Shot", "Spoonful of Mustard", "Ranch Dip Hour", "Mystery Sandwich", "Cucumber Straw", "Hot Sauce Bread", "Raw Onion Apple", "Measuring Spoon Drink", "Orange Juice Cereal", "Suicide Soda Mix", "Lemon Wedge Face", "Baby Food Buffet", "Salt Water Gulp", "PB & Pickle Cracker", "Soy Sauce Milk", "Cold Butter Bite", "Mayo Spoonful", "Lukewarm Water Day", "Non-dominant Hand Meal", "No Hands Pudding", "Happy Birthday Call", "King of the World Yell", "Lizard in Shoe Text", "Potato Profile Pic", "Interpretive Dance", "British Accent", "Spheres of Dough Call", "Crab Walk", "Nat Geo Narrator", "High-five Strangers", "Wet Socks Status", "Imaginary Pet Dragon", "Ancient Scrolls Voice", "Wave at Cars", "Dramatic Slow-mo", "Backward Clothes", "Sell a Paperclip", "Whisper Speak", "Barking Dog Name", "Serenade Plant", "20 Burpees", "Spoon Nose Balance", "Dizzy Straight Walk", "Floss Dance 2m", "Plank Turn", "Egg Juggle", "50 Jumping Jacks", "Wall Sit 90s", "Tongue Nose Touch", "One Foot Hop", "Duck Walk House", "Balloon Head Keepy", "10 Somersaults", "Stair Book Balance", "Cracker Whistle", "Wall Handstand", "Mailbox Bear Crawl", "30 Mountain Climbers", "Foot Sock Challenge", "British Are Coming Run", "Hand Socks", "Marker Mustache", "Shirt Layer Pile", "Colander Helmet", "Crazy Hair Makeover", "Coin Thumb Tape", "Wrong Feet Shoes", "Winter Coat Inside", "Kick Me Sign", "Forehead Third Eye", "Indoor Sunglasses", "Wheel Master Tag", "Sweatband Rubberband", "Mummy Arm TP", "Mismatched Shoes", "Silly Hat Choice", "Beach Towel Cape", "10 Hair Clips", "Pants in Socks", "Painted Fingernail", "Ice Bucket Back", "Swap Clothes", "The Group Butler", "Group Chosen Tattoo", "Meow Speaking", "Blindfold Dog Draw", "The Statue Trap", "Balloon Pop Sit", "Twinkle Star Sing", "Grass TED Talk", "Shaving Cream Pie", "Toothbrush Sink", "Foot Smell Rank", "Act Like Chicken", "Backward Walk 10m", "Confession Video", "Donut String Bite", "Penalty Box Corner", "Left-person Mimic", "ULTIMATE SPIN x2"];
-
-    function playBoop() {
-        if (isMuted) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    }
-
-    function toggleConfig(forceHide = false) {
-        if (forceHide) controls.classList.add('hidden');
-        else controls.classList.toggle('hidden');
-        document.getElementById('config-toggle').innerText = controls.classList.contains('hidden') ? "Show Config" : "Hide Config";
-    }
-
-    function toggleWheelType() {
-        isFlat = !isFlat;
-        container.className = isFlat ? 'flat-mode' : '';
-        pointer.className = isFlat ? 'flat-pointer' : '';
-        applyNames();
-    }
-
-    function toggleMute() {
-        isMuted = !isMuted;
-        document.getElementById('mute-btn').innerText = isMuted ? "Unmute Sound" : "Mute Sound";
-    }
-
-    function toggleGameMode() {
-        gameMode = !gameMode;
-        lightFrame.style.display = gameMode ? 'block' : 'none';
-        document.getElementById('game-btn').innerText = gameMode ? "Game Mode: On" : "Game Mode: Off";
-        if (gameMode && lightFrame.children.length === 0) createLights();
-    }
-
-    function createLights() {
-        const totalLights = 80;
-        for (let i = 0; i < totalLights; i++) {
-            const l = document.createElement('div');
-            l.className = 'light';
-            if (i < 25) { l.style.top = '-8px'; l.style.left = (i * 4) + '%'; }
-            else if (i < 40) { l.style.right = '-8px'; l.style.top = ((i - 25) * 6.6) + '%'; }
-            else if (i < 65) { l.style.bottom = '-8px'; l.style.right = ((i - 40) * 4) + '%'; }
-            else { l.style.left = '-8px'; l.style.bottom = ((i - 65) * 6.6) + '%'; }
-            lightFrame.appendChild(l);
-        }
-    }
-
-    function updateTransform() {
-        if (isFlat) container.style.transform = `rotate(${-rotation}deg)`;
-        else container.style.transform = `rotateX(${-rotation}deg)`;
-        const count = isFlat ? 50 : 100;
-        const index = Math.round((rotation % 360 + 360) % 360 / (360 / count)) % count;
-        if (index !== lastIndex) {
-            playBoop(); lastIndex = index;
-            displayHeader.innerText = sliceItems[index];
-            displayHeader.style.borderColor = displayHeader.style.color = pointer.style.borderRightColor = sliceColors[index];
-        }
-    }
-
-    function applyNames() {
-        const lines = nameInput.value.split('\n').map(l => l.trim()).filter(l => l !== '');
-        sliceItems = []; sliceColors = []; container.innerHTML = '';
-        const totalSlices = isFlat ? 50 : 100;
-        for (let i = 0; i < totalSlices; i++) sliceItems.push(lines[i % lines.length]);
-        const radius = (totalSlices * 100) / (2 * Math.PI);
-        const scale = isFlat ? 1 : Math.min((window.innerHeight * 0.7) / (radius * 2), (window.innerWidth * 0.8) / 500);
-        scaler.style.transform = isFlat ? `scale(${Math.min(window.innerWidth/700, window.innerHeight/700)})` : `scale(${scale}) translateZ(${-radius * 0.4}px)`;
-        sliceItems.forEach((text, i) => {
-            const div = document.createElement('div');
-            div.className = isFlat ? 'slice flat-slice' : 'slice';
-            div.innerText = text;
-            div.style.backgroundColor = sliceColors[i] = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0'][i % 7];
-            if (isFlat) div.style.transform = `rotate(${i * (360/50)}deg)`;
-            else div.style.transform = `rotateX(${i * 3.6}deg) translateZ(${radius}px)`;
-            container.appendChild(div);
-        });
-        updateTransform();
-    }
-
-    function onStart(e) { isDragging = true; velocity = 0; lastY = e.clientY || e.touches[0].clientY; lastTime = performance.now(); toggleConfig(true); }
-    function onMove(e) {
-        if (!isDragging) return;
-        const currentY = e.clientY || e.touches[0].clientY;
-        const currentTime = performance.now();
-        const deltaY = currentY - lastY;
-        rotation += deltaY * 0.3;
-        if (currentTime - lastTime > 0) velocity = (deltaY / (currentTime - lastTime)) * 16;
-        lastY = currentY; lastTime = currentTime; updateTransform();
-    }
-
-    container.addEventListener('mousedown', onStart);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', () => isDragging = false);
-    container.addEventListener('touchstart', onStart, { passive: false });
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', () => isDragging = false);
-
-    setInterval(() => {
-        if (!gameMode) return;
-        lightSequence = (lightSequence + 1) % 80;
-        const lights = lightFrame.querySelectorAll('.light');
-        lights.forEach((l, idx) => {
-            let isActive = false;
-            for (let c = 0; c < 4; c++) {
-                const head = (lightSequence + (c * 20)) % 80;
-                for (let b = 0; b < 4; b++) { if (idx === (head - b + 80) % 80) isActive = true; }
-            }
-            l.className = isActive ? 'light active' : 'light';
-        });
-    }, 40);
-
-    function animate() {
-        if (!isDragging && Math.abs(velocity) > 0.05) { rotation += velocity; velocity *= 0.985; updateTransform(); }
-        requestAnimationFrame(animate);
-    }
-    
-    function generateRandomNumbers() { let n = Array.from({length:100},(_,i)=>i+1); n.sort(()=>Math.random()-0.5); nameInput.value=n.join('\n'); applyNames(); }
-    function loadUnfortunate() { nameInput.value = unfortunate.join('\n'); applyNames(); }
-    function loadChores() { nameInput.value = "Vacuum\nMop\nDishes\nLaundry\nTrash".repeat(20); applyNames(); }
-    function loadActivities() { nameInput.value = "Reading\nCycling\nDrawing\nBaking".repeat(25); applyNames(); }
-    function loadFood() { nameInput.value = "Pizza\nSushi\nTacos\nBurger".repeat(25); applyNames(); }
-    function clearList() { nameInput.value = ""; }
-    function autoSpin() { velocity = 35 + Math.random() * 25; toggleConfig(true); }
-
-    applyNames(); animate();
+    // Initialize DOM elements before any modules are loaded
+    container = document.getElementById('wheel-container');
+    scaler = document.getElementById('wheel-scaler');
+    nameInput = document.getElementById('nameInput');
+    pointer = document.getElementById('pointer');
+    displayHeader = document.getElementById('display-header');
+    controls = document.getElementById('controls');
+    drumAssembly = document.getElementById('drum-assembly');
+    lightFrame = document.getElementById('light-frame');
+</script>
+<script src="js/state.js"></script>
+<script src="js/colours.js"></script>
+<script src="js/List-Activities.js"></script>
+<script src="js/List-Food.js"></script>
+<script src="js/List-Unfortunate.js"></script>
+<script src="js/wheel-logic.js"></script>
+<script src="js/drum-logic.js"></script>
+<script src="js/controls.js"></script>
+<script src="js/event-handlers.js"></script>
+<script src="js/game-mode.js"></script>
+<script>
+    window.onload = () => {
+        initEventListeners();
+        applyNames(); 
+        animate();
+    };
 </script>
 </body>
 </html>
