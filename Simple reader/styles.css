@@ -54,7 +54,17 @@ body {
 .header-title h1 {
     font-size: 1.2rem;
     font-weight: 600;
+}
+
+.header-title h1 a {
     color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.header-title h1 a:hover {
+    color: rgb(244, 144, 44);
+    text-shadow: 0 0 10px rgba(244, 144, 44, 0.6);
 }
 
 .controls-section {
@@ -233,7 +243,7 @@ textarea {
 }
 
 .prompter-line.active {
-    background: var(--panel-bg);
+    background: #2a2a2a;
     border-left: 2px solid var(--text-primary);
 }
 
