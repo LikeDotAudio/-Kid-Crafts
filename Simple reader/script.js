@@ -8,6 +8,7 @@ const btnPlay = document.getElementById('btn-play');
 const btnPause = document.getElementById('btn-pause');
 const btnStop = document.getElementById('btn-stop');
 const sizeSelect = document.getElementById('size-select');
+const alternateVoiceCheckbox = document.getElementById('alternate-voice-checkbox');
 
 let synth = window.speechSynthesis;
 let voices = [];
@@ -102,13 +103,29 @@ function formatText() {
     text = text.replace(/<[^>]*>?/gm, '');
     text = text.replace(/[*_`~>]/g, '');
     
+    // Special character behaviours
+    text = text.replace(/-{2,}/g, ' '); // --- is not read as dash dash dash
+    text = text.replace(/\|/g, '');     // | PIPE is not said out loud
+    
+    // Units formatting
+    text = text.replace(/(\d)\s*ms\b/gi, '$1 milliseconds'); // 6.7ms -> 6.7 milliseconds
+    
+    // Skip large numbers (over a million)
+    text = text.replace(/\b\d+(?:,\d{3})*(?:\.\d+)?\b/g, (match) => {
+        const num = parseFloat(match.replace(/,/g, ''));
+        if (num >= 1000000) {
+            return '';
+        }
+        return match;
+    });
+
     // Fix extra spaces and newlines
     text = text.replace(/\n\s*\n/g, '\n\n');
     text = text.replace(/ +/g, ' ');
     text = text.replace(/^ +/gm, ''); // Remove leading spaces from all lines
     
-    // Ensure space after punctuation
-    text = text.replace(/([.?!,;:])([a-zA-Z])/g, '$1 $2');
+    // Ensure space after punctuation (excluding period to preserve filenames like NAME.DN)
+    text = text.replace(/([?!,;:])([a-zA-Z])/g, '$1 $2');
     
     textInput.value = text.trim();
     
@@ -166,7 +183,9 @@ function parseTextToChunks(rawText) {
         if (currentParagraph.trim() === '') return;
         
         let textToProcess = currentParagraph.replace(/\s+/g, ' ').trim();
-        let rawChunks = textToProcess.split(/([.!?]+)/);
+        // Split on punctuation only if followed by a space or end of string 
+        // (prevents breaking on filenames like NAME.DN)
+        let rawChunks = textToProcess.split(/([.!?]+(?=\s|$))/);
         let sentences = [];
         for (let j = 0; j < rawChunks.length; j += 2) {
             let sentence = rawChunks[j];
@@ -422,7 +441,26 @@ function playChunk(index) {
     const utterThis = new SpeechSynthesisUtterance(chunk.text);
     currentUtterance = utterThis; // Keep reference to prevent GC bug in some browsers
     
-    if (voiceSelect.selectedOptions.length > 0) {
+    if (alternateVoiceCheckbox.checked) {
+        // Calculate chapter count up to this chunk
+        let chapterCount = 0;
+        for (let i = 0; i <= index; i++) {
+            if (allChunks[i].isHeading) chapterCount++;
+        }
+        
+        // Best-effort selection of male and female English voices
+        let maleVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Male') || v.name.includes('Guy') || v.name.includes('David') || v.name.includes('Alex')));
+        let femaleVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Aria') || v.name.includes('Zira') || v.name.includes('Jenny') || v.name.includes('Samantha')));
+        
+        // Fallbacks if named voices aren't found
+        if (!maleVoice) maleVoice = voices.find(v => v.lang.startsWith('en'));
+        if (!femaleVoice) femaleVoice = voices.find(v => v.lang.startsWith('en') && v !== maleVoice);
+        
+        // Alternate voice based on chapter count
+        if (maleVoice && femaleVoice) {
+            utterThis.voice = (chapterCount % 2 === 0) ? femaleVoice : maleVoice;
+        }
+    } else if (voiceSelect.selectedOptions.length > 0) {
         const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
         for (let i = 0; i < voices.length; i++) {
             if (voices[i].name === selectedOption) {
